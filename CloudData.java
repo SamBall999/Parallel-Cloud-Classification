@@ -109,9 +109,6 @@ public class CloudData {
 		//divide by number of entries/grid points
 		float xav = xsum/numPoints;
 		float yav = ysum/numPoints;
-		//System.out.printf("Sum is %f\n", xsum);
-		//System.out.printf("No. points is %d\n", numPoints);
-		//System.out.printf("Average is %f\n", xav);
 
 		//add values to wind vector
 		wind.add(xav);
@@ -153,9 +150,6 @@ public class CloudData {
 		float xav = xsum/numPoints;
 		float yav = ysum/numPoints;
 
-		//Vector<Float> localWind = new Vector();
-		//wind.add(xav);
-		//wind.add(yav);
 		//magnitude
 		float magnitude = (float)Math.sqrt((xav*xav)+(yav*yav));
 		System.out.printf("Magnitude is %f\n", magnitude);
@@ -163,8 +157,7 @@ public class CloudData {
 		float uplift = convection[time][x][y]; //uplift value at the desired coordinate
 
 		//assign to each air layer element an integer code (0, 1 or 2)
-		//indicates the type of cloud that is likely to form in that location based on a comparison of the local average wind
-    //direction and uplift value
+		//indicates the type of cloud that is likely to form in that location
 		//classification for current element
 		if (Math.abs(uplift) > magnitude)
 		{
@@ -182,16 +175,23 @@ public class CloudData {
 		return cloudType;
 	}
 
+	void getClouds()
+	{
+		for(int t = 0; t < dimt; t++)
+			for(int x = 0; x < dimx; x++)
+				for(int y = 0; y < dimy; y++){
+				findCloud(t, x, y); // finds cloud type for this point and writes value to classification array
+				}
+	}
+
 
 	public static void main(String[] args)
 	{
-		CloudData cd = new CloudData();
-		cd.readData(args[0]);
-		Vector<Float> wind = cd.findAverage();
-		//System.out.println(wind.get(0));
-		//System.out.println(wind.get(1));
-		int cloud = cd.findCloud(2, 0, 0);
-		System.out.println(cloud);
-		cd.writeData(args[1], wind);
+		CloudData cd = new CloudData(); //create CloudData object
+		cd.readData(args[0]); //read in data from input file
+		Vector<Float> wind = cd.findAverage(); //find prevailing wind vector
+		//loop through all points and call findCloud for each one
+		cd.getClouds();
+		cd.writeData(args[1], wind); // write data to output file
 	}
 }
