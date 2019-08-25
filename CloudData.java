@@ -153,27 +153,24 @@ public class CloudData {
 		float xav = xsum/numPoints;
 		float yav = ysum/numPoints;
 
-		System.out.printf("Sum is %f\n", ysum);
-		System.out.printf("No. points is %d\n", numPoints);
-		System.out.printf("Average is %f\n", yav);
-
+		//Vector<Float> localWind = new Vector();
+		//wind.add(xav);
+		//wind.add(yav);
+		//magnitude
+		float magnitude = (float)Math.sqrt((xav*xav)+(yav*yav));
+		System.out.printf("Magnitude is %f\n", magnitude);
 		int cloudType = 0;
+		float uplift = convection[time][x][y]; //uplift value at the desired coordinate
 
-		//find combined magnitude and compare to u
-		/*int cloudType;
-		float u;
-		float w = 0;
 		//assign to each air layer element an integer code (0, 1 or 2)
 		//indicates the type of cloud that is likely to form in that location based on a comparison of the local average wind
     //direction and uplift value
-
 		//classification for current element
-		u = convection[time][x][y]; //corresponding uplift value
-		if (abs(u) > len(w))
+		if (Math.abs(uplift) > magnitude)
 		{
 			cloudType = 0;
 		}
-		else if ((len(w) > 0.2)&&(len(w) >= abs(u))) //significance of len??
+		else if ((magnitude > 0.2)&&(magnitude >= Math.abs(uplift))) //significance of len??
 		{
 			cloudType = 1;
 		}
@@ -181,7 +178,7 @@ public class CloudData {
 		{
 			cloudType = 2;
 		}
-		classification[time][x][y] = cloudType;*/
+		classification[time][x][y] = cloudType;
 		return cloudType;
 	}
 
@@ -193,8 +190,8 @@ public class CloudData {
 		Vector<Float> wind = cd.findAverage();
 		//System.out.println(wind.get(0));
 		//System.out.println(wind.get(1));
-		int cloud = cd.findCloud(1, 0, 0);
-		//System.out.println(cd.checkBounds(0,1));
+		int cloud = cd.findCloud(2, 0, 0);
+		System.out.println(cloud);
 		cd.writeData(args[1], wind);
 	}
 }
