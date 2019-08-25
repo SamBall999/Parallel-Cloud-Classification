@@ -98,7 +98,7 @@ public class CloudData {
 
 	}
 
-	Vector<Float> findAverage()
+	Vector<Double> findAverage()
 	{
 		//calculate  average wind vector for all air layer elements and time steps
 		//return vector with average x and y values
