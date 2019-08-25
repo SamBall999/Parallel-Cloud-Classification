@@ -138,7 +138,7 @@ public class CloudData {
 	}
 
 
-	int findCloud(float time, float x, float y)
+	/*int findCloud(float time, float x, float y)
 	{
 		//find average of x and y components as before - but only for local elements
 		float xsum = 0;
@@ -184,7 +184,7 @@ public class CloudData {
 		}
 		classification[time][x][y] = cloudType;
 		return cloudType;
-	}
+	}*/
 
 
 	public static void main(String[] args)
@@ -194,6 +194,7 @@ public class CloudData {
 		Vector<Float> wind = cd.findAverage();
 		System.out.println(wind.get(0));
 		System.out.println(wind.get(1));
+		System.out.println(checkBounds(-1,6));
 		cd.writeData(args[1], wind);
 	}
 }
