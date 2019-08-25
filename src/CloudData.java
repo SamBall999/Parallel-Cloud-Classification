@@ -1,4 +1,4 @@
-package cloudscapes;
+//package cloudscapes;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,16 @@ public class CloudData {
 	float [][][] convection; // vertical air movement strength, that evolves over time
 	int [][][] classification; // cloud type per grid point, evolving over time
 	int dimx, dimy, dimt; // data dimensions
+
+  //used to time sequential program - must test across a range of input sizes
+	static long startTime = 0;
+
+	private static void tick(){
+		startTime = System.currentTimeMillis();
+	}
+	private static float tock(){
+		return (System.currentTimeMillis() - startTime) / 1000.0f;
+	}
 
 	// overall number of elements in the timeline grids
 	int dim(){
@@ -92,9 +102,9 @@ public class CloudData {
 	{
 		//calculate  average wind vector for all air layer elements and time steps
 		//return vector with average x and y values
-		Vector<Float> wind = new Vector();
-		float xsum = 0;
-		float ysum = 0;
+		Vector<Double> wind = new Vector();
+		double xsum = 0;
+		double ysum = 0;
 		int numPoints = 0;
 		for(int t = 0; t < dimt; t++)
 			for(int x = 0; x < dimx; x++)
@@ -107,8 +117,8 @@ public class CloudData {
 					numPoints++;
 				}
 		//divide by number of entries/grid points
-		float xav = xsum/numPoints;
-		float yav = ysum/numPoints;
+		double xav = xsum/numPoints;
+		double yav = ysum/numPoints;
 
 		//add values to wind vector
 		wind.add(xav);
@@ -131,8 +141,8 @@ public class CloudData {
 	int findCloud(int time, int x, int y)
 	{
 		//find average of x and y components as before - but only for local elements
-		float xsum = 0;
-		float ysum = 0;
+		double xsum = 0;
+		double ysum = 0;
 		int numPoints = 0;
 		//use indexes to sum correct blocks
 		//check for boundaries
@@ -147,12 +157,12 @@ public class CloudData {
 					numPoints++;
 				}
 			}
-		float xav = xsum/numPoints;
-		float yav = ysum/numPoints;
+		double xav = xsum/numPoints;
+		double yav = ysum/numPoints;
 
 		//magnitude
-		float magnitude = (float)Math.sqrt((xav*xav)+(yav*yav));
-		System.out.printf("Magnitude is %f\n", magnitude);
+		double magnitude = Math.sqrt((xav*xav)+(yav*yav));
+		//System.out.printf("Magnitude is %f\n", magnitude);
 		int cloudType = 0;
 		float uplift = convection[time][x][y]; //uplift value at the desired coordinate
 
@@ -189,9 +199,12 @@ public class CloudData {
 	{
 		CloudData cd = new CloudData(); //create CloudData object
 		cd.readData(args[0]); //read in data from input file
-		Vector<Float> wind = cd.findAverage(); //find prevailing wind vector
+		tick();
+		Vector<Double> wind = cd.findAverage(); //find prevailing wind vector
 		//loop through all points and call findCloud for each one
 		cd.getClouds();
+		float time = tock();
+		System.out.println("Run took "+ time +" seconds");
 		cd.writeData(args[1], wind); // write data to output file
 	}
 }
