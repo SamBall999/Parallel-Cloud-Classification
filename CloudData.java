@@ -131,7 +131,7 @@ public class CloudData {
 	}
 
 
-	/*int findCloud(float time, float x, float y)
+	int findCloud(int time, int x, int y)
 	{
 		//find average of x and y components as before - but only for local elements
 		float xsum = 0;
@@ -153,8 +153,14 @@ public class CloudData {
 		float xav = xsum/numPoints;
 		float yav = ysum/numPoints;
 
+		System.out.printf("Sum is %f\n", ysum);
+		System.out.printf("No. points is %d\n", numPoints);
+		System.out.printf("Average is %f\n", yav);
+
+		int cloudType = 0;
+
 		//find combined magnitude and compare to u
-		int cloudType;
+		/*int cloudType;
 		float u;
 		float w = 0;
 		//assign to each air layer element an integer code (0, 1 or 2)
@@ -175,9 +181,9 @@ public class CloudData {
 		{
 			cloudType = 2;
 		}
-		classification[time][x][y] = cloudType;
+		classification[time][x][y] = cloudType;*/
 		return cloudType;
-	}*/
+	}
 
 
 	public static void main(String[] args)
@@ -185,8 +191,9 @@ public class CloudData {
 		CloudData cd = new CloudData();
 		cd.readData(args[0]);
 		Vector<Float> wind = cd.findAverage();
-		System.out.println(wind.get(0));
-		System.out.println(wind.get(1));
+		//System.out.println(wind.get(0));
+		//System.out.println(wind.get(1));
+		int cloud = cd.findCloud(1, 0, 0);
 		//System.out.println(cd.checkBounds(0,1));
 		cd.writeData(args[1], wind);
 	}
