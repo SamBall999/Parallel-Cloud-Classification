@@ -91,8 +91,7 @@ public class CloudData {
 	Vector<Float> findAverage()
 	{
 		//calculate  average wind vector for all air layer elements and time steps
-		//actually return vector
-		//sum all x wind values
+		//return vector with average x and y values
 		Vector<Float> wind = new Vector();
 		float xsum = 0;
 		float ysum = 0;
@@ -100,27 +99,21 @@ public class CloudData {
 		for(int t = 0; t < dimt; t++)
 			for(int x = 0; x < dimx; x++)
 				for(int y = 0; y < dimy; y++){
+					//sum all x wind values
 					xsum += advection[t][x][y].get(0);
+					//sum all y wind values
 					ysum += advection[t][x][y].get(1);
+					//count total number of data points
 					numPoints++;
 				}
+		//divide by number of entries/grid points
 		float xav = xsum/numPoints;
 		float yav = ysum/numPoints;
 		//System.out.printf("Sum is %f\n", xsum);
 		//System.out.printf("No. points is %d\n", numPoints);
 		//System.out.printf("Average is %f\n", xav);
-		//divide by number of entries/grid points
-		//return xav;
-		/*for(int t = 0; t < dimt; t++)
-			for(int x = 0; x < dimx; x++)
-				for(int y = 0; y < dimy; y++){
-					ysum += advection[t][x][y].get(1);
-				}*/
-		//float yav = ysum/numPoints;
-		//System.out.printf("Sum is %f\n", ysum);
-		//System.out.printf("No. points is %d\n", numPoints);
-		//System.out.printf("Average is %f\n", yav);
 
+		//add values to wind vector
 		wind.add(xav);
 		wind.add(yav);
 		return wind;
@@ -194,7 +187,7 @@ public class CloudData {
 		Vector<Float> wind = cd.findAverage();
 		System.out.println(wind.get(0));
 		System.out.println(wind.get(1));
-		System.out.println(cd.checkBounds(-1,6));
+		//System.out.println(cd.checkBounds(0,1));
 		cd.writeData(args[1], wind);
 	}
 }
