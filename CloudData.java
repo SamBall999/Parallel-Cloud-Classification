@@ -130,7 +130,7 @@ public class CloudData {
 	boolean checkBounds(int i, int j)
 	{
 		boolean inBounds = false;
-		if((i>=0)&&(i<dimx)&&(y>=0)&&(y<dimy))
+		if((i>=0)&&(i<dimx)&&(j>=0)&&(j<dimy))
 		{
 			inBounds = true;
 		}
@@ -194,7 +194,7 @@ public class CloudData {
 		Vector<Float> wind = cd.findAverage();
 		System.out.println(wind.get(0));
 		System.out.println(wind.get(1));
-		System.out.println(checkBounds(-1,6));
+		System.out.println(cd.checkBounds(-1,6));
 		cd.writeData(args[1], wind);
 	}
 }
