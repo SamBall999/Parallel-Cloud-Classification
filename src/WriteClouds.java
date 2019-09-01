@@ -47,7 +47,13 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 			ind[2] = pos % (dimy); // y
 		}
 
-
+		/**
+	  * Checks whether the given dimensions are within the bounds of the 3D array
+	  *
+		*@param i Integer value representing the x position of the gridpoint to be verified
+		*@param j Integer value representing the y position of the gridpoint to be verified
+	  *@return Boolean value indicating whether the gridpoint is within the bounds of the array
+	  */
 		boolean checkBounds(int i, int j)
 		{
 			boolean inBounds = false;
@@ -58,6 +64,14 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 			return inBounds;
 		}
 
+		/**
+		* Find the cloud classification for the given gridpoint at the given time value
+		*
+		*@param time Integer value representing the time value at which to find the cloud classification
+		*@param i Integer value representing the x position of the gridpoint
+		*@param j Integer value representing the y position of the gridpoint
+		*@return Integer value representing the type of cloud likely to form. 
+		*/
 		int findCloud(int time, int x, int y)
 		{
 				//find average of x and y components as before - but only for local elements
