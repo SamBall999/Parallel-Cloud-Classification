@@ -1,6 +1,13 @@
 import java.util.concurrent.RecursiveAction;
 import java.util.Vector;
 
+/**
+ * Threaded class to write values representing cloud classification to a 3D array using parallelization
+ *
+ *@author Samantha Ball
+ *@version 1.0
+ *@since 1
+ */
 public class WriteClouds extends RecursiveAction { //change back to recusive task if necessary
 	  int lo; // arguments
 	  int hi;
@@ -10,22 +17,36 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 		int dimx, dimy, dimt;
 	  static final int SEQUENTIAL_CUTOFF= 2000; //500 //3
 
-	  //int ans = 0; // result
 
-	  WriteClouds(int[][][] clas, Vector<Float>[][][] advec, float[][][] conv, int l, int h) {
+		/**
+    *Creates a new WriteClouds instance with the specified parameters
+    *
+		*@param clas 3D array that classification values are written to
+    *@param advec 3D array of advection values used in cloud classification method
+		*@param conv 3D array of convection values used in cloud classification method
+    *@param l Lower bound of elements to be classified
+    *@param h Upper bound of elements to be classified
+    */
+	  public WriteClouds(int[][][] clas, Vector<Float>[][][] advec, float[][][] conv, int l, int h) {
 	    lo=l; hi=h; classification = clas; advection = advec; convection = conv;
 			dimt = classification.length;
 			dimx = classification[0].length;
 			dimy = classification[0][0].length;
 	  }
 
-		// convert linear position into 3D location in simulation grid
+		/**
+	 * Converts linear position into 3D location in simulation grid
+	 *
+	 *@param pos Linear position to be converted to a grid point
+	 *@param ind Integer array to hold the corresponding grid indices
+	 */
 		void locate(int pos, int [] ind)
 		{
 			ind[0] = (int) pos / (dimx*dimy); // t
 			ind[1] = (pos % (dimx*dimy)) / dimy; // x
 			ind[2] = pos % (dimy); // y
 		}
+
 
 		boolean checkBounds(int i, int j)
 		{
@@ -85,10 +106,16 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 			}
 
 
+		/**
+	  * Performs writing of classification data to the 3D array
+	  *
+	  *<p>
+	  *Parallelization is achieved by creating new threads until the sequential cutoff is reached. The cloud classification values for each gridpoint are then found and written to the 3D array.
+	  *</p>
+		*/
 	  protected void compute(){// change back to protected integer if necessary
 		  if((hi-lo) < SEQUENTIAL_CUTOFF) {
 				//each position represents a specific grid point
-			  //int ans = 0;
 				int[] gridPoint = new int[3];
 		    for(int i=lo; i < hi; i++)
 				{
@@ -105,7 +132,6 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 			  left.fork();
 			  right.compute();
 			  left.join();
-			  //return classification;
 		  }
 	 }
 

@@ -18,7 +18,6 @@ public class SumArray extends RecursiveTask<Vector<Double>>  {
 		double xsum = 0;
 		double ysum = 0;
 	  static final int SEQUENTIAL_CUTOFF=2000; //vary from 0-50 000
-
 	  int ans = 0; // result
 
 		/**
@@ -50,10 +49,10 @@ public class SumArray extends RecursiveTask<Vector<Double>>  {
 		}
 
 		/**
-	  * Converts linear position into 3D location in simulation grid
+	  * Performs summing operation of (x,y) pairs using parallelization
 	  *
 	  *<p>
-	  *Stores datetime, power and voltage values read from each line of the CSV file into a binary search tree node. Keeps track of how many nodes have been stored.
+	  *Parallelization is achieved by creating new threads until the sequential cutoff is reached. The x and y sums are then determined and returned as a 2D vector.
 	  *</p>
 		*@return Vector object containing two float values representing the sum of the x values and the sum of the y values respectively
 		*/
