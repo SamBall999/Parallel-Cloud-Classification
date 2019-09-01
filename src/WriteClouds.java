@@ -40,7 +40,7 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 	 *@param pos Linear position to be converted to a grid point
 	 *@param ind Integer array to hold the corresponding grid indices
 	 */
-		void locate(int pos, int [] ind)
+		public void locate(int pos, int [] ind)
 		{
 			ind[0] = (int) pos / (dimx*dimy); // t
 			ind[1] = (pos % (dimx*dimy)) / dimy; // x
@@ -54,7 +54,7 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 		*@param j Integer value representing the y position of the gridpoint to be verified
 	  *@return Boolean value indicating whether the gridpoint is within the bounds of the array
 	  */
-		boolean checkBounds(int i, int j)
+		public boolean checkBounds(int i, int j)
 		{
 			boolean inBounds = false;
 			if((i>=0)&&(i<dimx)&&(j>=0)&&(j<dimy))
@@ -70,9 +70,9 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 		*@param time Integer value representing the time value at which to find the cloud classification
 		*@param i Integer value representing the x position of the gridpoint
 		*@param j Integer value representing the y position of the gridpoint
-		*@return Integer value representing the type of cloud likely to form. 
+		*@return Integer value representing the type of cloud likely to form. 0 = Cumulus, 1= Striated stratus 2 = Amorphous stratus.
 		*/
-		int findCloud(int time, int x, int y)
+		public int findCloud(int time, int x, int y)
 		{
 				//find average of x and y components as before - but only for local elements
 				double xsum = 0;

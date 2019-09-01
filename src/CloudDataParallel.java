@@ -1,7 +1,5 @@
 
 
-
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -47,7 +45,12 @@ public class CloudDataParallel {
  return fjPool.invoke(new SumArray(values, 0, numElements)); //watch out for length function
  }
 
- // overall number of elements in the timeline grids
+
+ /**
+  * Computes overall number of elements in the timeline grids
+  *
+  *@return Integer value representing the total number of elements in the timeline grids
+  */
  public int dim(){
 	 return dimt*dimx*dimy;
  }

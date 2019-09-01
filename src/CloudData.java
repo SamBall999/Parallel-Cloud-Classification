@@ -1,4 +1,4 @@
-//package cloudscapes;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,18 @@ import java.util.Vector;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+
+
+/**
+ * Using given data on wind and lift, computes prevailing wind direction and cloud type per gridpoint
+ *
+ *<p>
+ *Uses sequential methods to perform operations. Incorporates timing mechanisms used in benchmarking.
+ *</p>
+ *@author Samantha Ball
+ *@version 1.0
+ *@since 1
+ */
 public class CloudData {
 
 	Vector<Float> [][][] advection; // in-plane regular grid of wind vectors, that evolve over time
@@ -24,12 +36,21 @@ public class CloudData {
 		return (System.currentTimeMillis() - startTime) / 1000.0f;
 	}
 
-	// overall number of elements in the timeline grids
+	/**
+  * Computes overall number of elements in the timeline grids
+  *
+  *@return Integer value representing the total number of elements in the timeline grids
+  */
 	int dim(){
 		return dimt*dimx*dimy;
 	}
 
-	// convert linear position into 3D location in simulation grid
+	/**
+ * Converts linear position into 3D location in simulation grid
+ *
+ *@param pos Linear position to be converted to a grid point
+ *@param ind Integer array to hold the corresponding grid indices
+ */
 	void locate(int pos, int [] ind)
 	{
 		ind[0] = (int) pos / (dimx*dimy); // t
@@ -37,7 +58,11 @@ public class CloudData {
 		ind[2] = pos % (dimy); // y
 	}
 
-	// read cloud simulation data from file
+	/**
+ * Reads in text file and inserts data into corresponding 3D arrays
+ *
+ *@param filename Name of file to read data from
+ */
 	void readData(String fileName){
 		try{
 			Scanner sc = new Scanner(new File(fileName), "UTF-8");
@@ -72,7 +97,12 @@ public class CloudData {
 		}
 	}
 
-	// write classification output to file
+	/**
+   * Writes output data to text file
+   *
+   *@param filename Name of file to write data to
+   *@param wind Vector containing average wind values
+   */
 	void writeData(String fileName, Vector wind){
 		 try{
 			 FileWriter fileWriter = new FileWriter(fileName);
@@ -98,7 +128,7 @@ public class CloudData {
 
 	}
 
-	Vector<Double> findAverage()
+	public Vector<Double> findAverage()
 	{
 		//calculate  average wind vector for all air layer elements and time steps
 		//return vector with average x and y values
@@ -127,7 +157,14 @@ public class CloudData {
 
 	}
 
-	boolean checkBounds(int i, int j)
+	/**
+	* Checks whether the given dimensions are within the bounds of the 3D array
+	*
+	*@param i Integer value representing the x position of the gridpoint to be verified
+	*@param j Integer value representing the y position of the gridpoint to be verified
+	*@return Boolean value indicating whether the gridpoint is within the bounds of the array
+	*/
+	public boolean checkBounds(int i, int j)
 	{
 		boolean inBounds = false;
 		if((i>=0)&&(i<dimx)&&(j>=0)&&(j<dimy))
@@ -138,7 +175,15 @@ public class CloudData {
 	}
 
 
-	int findCloud(int time, int x, int y)
+	/**
+	* Find the cloud classification for the given gridpoint at the given time value
+	*
+	*@param time Integer value representing the time value at which to find the cloud classification
+	*@param i Integer value representing the x position of the gridpoint
+	*@param j Integer value representing the y position of the gridpoint
+	*@return Integer value representing the type of cloud likely to form. 0 = Cumulus, 1= Striated stratus 2 = Amorphous stratus.
+	*/
+	public int findCloud(int time, int x, int y)
 	{
 		//find average of x and y components as before - but only for local elements
 		double xsum = 0;
@@ -205,6 +250,12 @@ public class CloudData {
 		cd.getClouds();
 		float time = tock();
 		System.out.println("Run took "+ time +" seconds");
+		tick();
+		wind = cd.findAverage(); //find prevailing wind vector
+		//loop through all points and call findCloud for each one
+		cd.getClouds();
+		time = tock();
+		System.out.println("Second run took "+ time +" seconds");
 		cd.writeData(args[1], wind); // write data to output file
 	}
 }
