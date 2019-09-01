@@ -65,7 +65,7 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 		}
 
 		/**
-		* Find the cloud classification for the given gridpoint at the given time value
+		* Finds the cloud classification for the given gridpoint at the given time value
 		*
 		*@param time Integer value representing the time value at which to find the cloud classification
 		*@param i Integer value representing the x position of the gridpoint

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 
 
 /**
- * Using given data on wind and lift, computes prevailing wind direction and cloud type per gridpoint
+ * Using given data on wind and lift, sequentially computes prevailing wind direction and cloud type per gridpoint
  *
  *<p>
  *Uses sequential methods to perform operations. Incorporates timing mechanisms used in benchmarking.
@@ -128,6 +128,12 @@ public class CloudData {
 
 	}
 
+
+	/**
+	* Determines the prevailing wind direction over all timeline grid values
+	*
+	* @return Vector of doubles representing the average x and y wind values  
+	*/
 	public Vector<Double> findAverage()
 	{
 		//calculate  average wind vector for all air layer elements and time steps
@@ -176,7 +182,7 @@ public class CloudData {
 
 
 	/**
-	* Find the cloud classification for the given gridpoint at the given time value
+	* Finds the cloud classification for the given gridpoint at the given time value
 	*
 	*@param time Integer value representing the time value at which to find the cloud classification
 	*@param i Integer value representing the x position of the gridpoint
@@ -230,7 +236,11 @@ public class CloudData {
 		return cloudType;
 	}
 
-	void getClouds()
+
+	/**
+	* Finds cloud type for each value in the timeline grids
+	*/
+	public void getClouds()
 	{
 		for(int t = 0; t < dimt; t++)
 			for(int x = 0; x < dimx; x++)
@@ -239,7 +249,14 @@ public class CloudData {
 				}
 	}
 
-
+	/**
+	* Analyses input data to find prevailing wind direction and cloud types and writes output to a file.
+	*
+	*<p>
+	* Additionally measures time taken for the prevailing wind and cloud types to be determined.
+	*</p>
+	*@param args The first argument args[0] given in the command line is the name of the input file to read from. The second argument args[1] given in the command line is the name of the output file to write to.
+	*/
 	public static void main(String[] args)
 	{
 		CloudData cd = new CloudData(); //create CloudData object

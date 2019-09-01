@@ -10,7 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 
 
 /**
- * Using given data on wind and lift, computes prevailing wind direction and cloud type per gridpoint
+ * Using given data on wind and lift, computes prevailing wind direction and cloud type per gridpoint using parallelization
  *
  *<p>
  *Uses thread classes in order to parallelize the operations. Incorporates timing mechanisms used in benchmarking.
@@ -139,7 +139,11 @@ public class CloudDataParallel {
  }
 
 
-
+ /**
+ * Determines the prevailing wind direction over all timeline grid values
+ *
+ * @return Vector of doubles representing the average x and y wind values
+ */
  public Vector<Double> findAverage()
  {
 	 //calculate  average wind vector for all air layer elements and time steps
@@ -165,14 +169,23 @@ public class CloudDataParallel {
 
 
 
-
+ /**
+ * Finds cloud type for each value in the timeline grids
+ */
  void getClouds()
  {
 			 int numElements = dim();
 			 fjPool.invoke(new WriteClouds(classification, advection, convection, 0, numElements)); //put return back if necessary
  }
 
-
+ /**
+ * Analyses input data to find prevailing wind direction and cloud types and writes output to a file.
+ *
+ *<p>
+ * Additionally measures time taken for the prevailing wind and cloud types to be determined.
+ *</p>
+ *@param args The first argument args[0] given in the command line is the name of the input file to read from. The second argument args[1] given in the command line is the name of the output file to write to.
+ */
  public static void main(String[] args)
  {
 	 CloudData cd = new CloudData(); //create CloudData object
