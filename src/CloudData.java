@@ -1,5 +1,4 @@
 
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -9,6 +8,17 @@ import java.util.Vector;
 
 import java.util.concurrent.ForkJoinPool;
 
+
+/**
+ * Using given data on wind and lift, computes prevailing wind direction and cloud type per gridpoint using parallelization
+ *
+ *<p>
+ *Uses thread classes in order to parallelize the operations. Incorporates timing mechanisms used in benchmarking.
+ *</p>
+ *@author Samantha Ball
+ *@version 1.0
+ *@since 1
+ */
 public class CloudData {
 
 
@@ -48,7 +58,12 @@ public class CloudData {
     return (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy));
   }
 
-	// convert linear position into 3D location in simulation grid
+  /**
+   * Converts linear position into 3D location in simulation grid
+   *
+   *@param pos Linear position to be converted to a grid point
+   *@param ind Integer array to hold the corresponding grid indices
+   */
 	void locate(int pos, int [] ind)
 	{
 		ind[0] = (int) pos / (dimx*dimy); // t
@@ -56,7 +71,11 @@ public class CloudData {
 		ind[2] = pos % (dimy); // y
 	}
 
-	// read cloud simulation data from file
+  /**
+   * Reads in text file and inserts data into corresponding 3D arrays
+   *
+   *@param filename Name of file to read data from
+   */
 	void readData(String fileName){
 		try{
 			Scanner sc = new Scanner(new File(fileName), "UTF-8");
@@ -91,7 +110,12 @@ public class CloudData {
 		}
 	}
 
-	// write classification output to file
+  /**
+   * Writes output data to text file
+   *
+   *@param filename Name of file to write data to
+   *@param wind Vector containing average wind values
+   */
 	void writeData(String fileName, Vector wind){
 		 try{
 			 FileWriter fileWriter = new FileWriter(fileName);
@@ -116,8 +140,12 @@ public class CloudData {
 		 }
 	}
 
-
-    public Vector<Double> findAverage()
+  /**
+	* Determines the prevailing wind direction over all timeline grid values
+	*
+	* @return Vector of doubles representing the average x and y wind values
+	*/
+  public Vector<Double> findAverage()
   	{
   		//calculate  average wind vector for all air layer elements and time steps
   		//return vector with average x and y values
@@ -146,15 +174,25 @@ public class CloudData {
 
   	}
 
-    public Vector<Double> analyseData()
+    /**
+    * Determines the prevailing wind direction over all timeline grid values
+    *
+    * @return Vector of doubles representing the average x and y wind values
+    */
+    public Vector<Double> analyseData(int cutoff)
     {
       //calculate  average wind vector for all air layer elements and time steps
       //return vector with average x and y values
       Vector<Double> wind = new Vector();
       Vector<Double> sums = new Vector();
-
-      sums = fjPool.invoke(new WriteClouds(classification, advection, convection, 0,dim()));
-
+      if(cutoff==0)
+      {
+        sums = fjPool.invoke(new WriteClouds(classification, advection, convection, 0,dim()));
+      }
+      else
+      {
+        sums = fjPool.invoke(new WriteClouds(classification, advection, convection, 0,dim(), cutoff));
+      }
       /*else
       {
         sums = process(cutoff); //for benchmarking
@@ -176,6 +214,14 @@ public class CloudData {
 
     }
 
+
+    /**
+    * Checks whether the given dimensions are within the bounds of the 3D array
+    *
+    *@param i Integer value representing the x position of the gridpoint to be verified
+    *@param j Integer value representing the y position of the gridpoint to be verified
+    *@return Boolean value indicating whether the gridpoint is within the bounds of the array
+    */
     public boolean checkBounds(int i, int j)
     {
       boolean inBounds = false;
@@ -256,20 +302,6 @@ public class CloudData {
     }
 
 
-    /*void writeResults(String results){
-	try{
-	    FileWriter fileWriter = new FileWriter("results.txt");
-	    PrintWriter printWriter = new PrintWriter(fileWriter);
-	    printWriter.printf("%s", results);
-	    printWriter.close();
-	}
-	catch (IOException e){
-	    System.out.println("Unable to open output file "+"results.txt");
-	    e.printStackTrace();
-	}
-}*/
-
-
     void readCorrectData(String correctFile){
       try{
         Scanner sc = new Scanner(new File(correctFile), "UTF-8");
@@ -301,6 +333,92 @@ public class CloudData {
       }
     }
 
+    public float findAvTime(float[] times)
+    {
+      float av = (times[2]+times[3]+times[4]+times[5]+times[6])/5;
+      return av;
+    }
+
+
+    public void benchMarking()
+    {
+      try{
+        FileWriter fileWriter = new FileWriter("benchmarking.txt");
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+        printWriter.printf("Benchmarking data\n");
+        printWriter.printf("Data Sizes\n");
+        System.out.println("Data Sizes\n");
+      //different data sizes
+      for (int d = 32; d < 513; d*=2)
+      {
+        scalingFactor = ((float)d/datasize);
+        System.out.println("Scaling factor = " + scalingFactor);
+        printWriter.printf("Scaling factor = %f\n", scalingFactor);
+        float[] times = new float[7]; //run program 7 times but only average last 5
+        Vector<Double> wind = new Vector();
+        for (int i = 0; i < 7; i++)
+        {
+           tick();
+           wind = analyseData(0); //find prevailing wind vector, argument is sequential cut-off
+           float time = tock();
+           times[i] = time;
+        }
+        float averageTime = findAvTime(times);
+        System.out.println("Threaded ");
+        printWriter.printf("Threaded ");
+        System.out.println("Average run took "+ averageTime +" milliseconds");
+        printWriter.printf("Average run took %f milliseconds\n", averageTime);
+        times = new float[7]; //run program 7 times but only average last 5
+        wind = new Vector();
+        for (int i = 0; i < 7; i++)
+        {
+           tick();
+           wind = findAverage();
+           getClouds();
+           float time = tock();
+           times[i] = time;
+        }
+        averageTime = findAvTime(times);
+        System.out.println("Sequential");
+        printWriter.printf("Sequential");
+        System.out.println("Average run took "+ averageTime +" milliseconds");
+        printWriter.printf("Average run took %f milliseconds\n", averageTime);
+      }
+      //different sequential cut-offs
+      printWriter.printf("Sequential Cutoffs\n");
+      System.out.println("Sequential Cutoffs\n");
+      int[] cutoffs = {50, 500,5000,10000,20000,50000};
+      for(int c = 0; c < cutoffs.length; c++)
+      {
+        float[] times = new float[7]; //run program 7 times but only average last 5
+        Vector<Double> wind = new Vector();
+        for (int i = 0; i < 7; i++)
+        {
+           tick();
+           wind = analyseData(cutoffs[c]); //find prevailing wind vector, argument is sequential cut-off
+           float time = tock();
+           //System.out.println("Run took "+ time +" seconds");
+           times[i] = time;
+           //check if correct outside timing block
+           checkOutput(wind);
+         }
+        float averageTime = findAvTime(times);
+        System.out.println("Cutoff = " + cutoffs[c]);
+        printWriter.printf("Cutoff = %d ", cutoffs[c]);
+        System.out.println("Average run took "+ averageTime +" milliseconds");
+        printWriter.printf("Average run took %f milliseconds ", averageTime);
+        System.out.println("No. of threads " + WriteClouds.numThreads);
+        printWriter.printf("No. of threads = %d\n", WriteClouds.numThreads);
+        WriteClouds.numThreads = 0;
+      }
+      printWriter.close();
+    }
+    catch (IOException e){
+      System.out.println("Unable to open input file ");
+      e.printStackTrace();
+    }
+  }
+
 
 
     public void checkOutput(Vector<Double> wind)
@@ -331,37 +449,46 @@ public class CloudData {
    		}
    	}
 
-public static void main(String[] args){
 
-	CloudData cd = new CloudData();
-  cd.readData(args[0]); //read in data from input file
-  cd.readCorrectData(args[2]); //read in correct output data to compare
+    /**
+    * Analyses input data to find prevailing wind direction and cloud types and writes output to a file.
+    *
+    *<p>
+    * Additionally measures time taken for the prevailing wind and cloud types to be determined.
+    *</p>
+    *@param args The first argument args[0] given in the command line is the name of the input file to read from. The second argument args[1] given in the command line is the name of the output file to write to.
+    */
+    public static void main(String[] args){
 
-  if(args.length == 4)
-  {
-    if(args[3].equals("-t"))
-    {
-    //run benchmaring tests
-    }
-  }
-  else
-  {
-	//standard config
-	cd.scalingFactor = 1;
-  cd.tick();
-  Vector wind = cd.analyseData();
-  float time = cd.tock();
-  System.out.println(time);
-  cd.tick();
-  wind = cd.findAverage();
-  cd.getClouds();
-  time = cd.tock();
-  System.out.println(time);
-	//data.validate(correctOutputFileName);
-  cd.checkOutput(wind);
-  cd.writeData(args[1], wind);
-  }
+	     CloudData cd = new CloudData();
+       cd.readData(args[0]); //read in data from input file
+       cd.readCorrectData(args[2]); //read in correct output data to compare
 
-}
+       if(args.length == 4)
+       {
+         if(args[3].equals("-t"))
+         {
+           //run benchmarking tests
+           cd.benchMarking();
+         }
+       }
+       else
+       {
+	        //standard config
+	         cd.scalingFactor = 1;
+           cd.tick();
+           Vector wind = cd.analyseData(0);
+           float time = cd.tock();
+           System.out.println(time);
+           cd.tick();
+           wind = cd.findAverage();
+           cd.getClouds();
+           time = cd.tock();
+           System.out.println(time);
+           cd.checkOutput(wind);
+           cd.writeData(args[1], wind);
+         }
+
+       }
 
 }
