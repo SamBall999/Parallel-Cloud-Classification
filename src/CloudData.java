@@ -177,6 +177,7 @@ public class CloudData {
     /**
     * Determines the prevailing wind direction over all timeline grid values
     *
+    * @param cutoff Used to vary the sequential cutoff value of the thread class for use in benchmarking
     * @return Vector of doubles representing the average x and y wind values
     */
     public Vector<Double> analyseData(int cutoff)
@@ -237,8 +238,8 @@ public class CloudData {
     * Finds the cloud classification for the given gridpoint at the given time value
     *
     *@param time Integer value representing the time value at which to find the cloud classification
-    *@param i Integer value representing the x position of the gridpoint
-    *@param j Integer value representing the y position of the gridpoint
+    *@param x Integer value representing the x position of the gridpoint
+    *@param y Integer value representing the y position of the gridpoint
     *@return Integer value representing the type of cloud likely to form. 0 = Cumulus, 1= Striated stratus 2 = Amorphous stratus.
     */
     public int findCloud(int time, int x, int y)
@@ -302,6 +303,12 @@ public class CloudData {
     }
 
 
+
+    /**
+     * Reads in text file of known correct output and inserts data into corresponding 3D arrays for use in verification of ouput
+     *
+     *@param correctFile Name of file to read correct output data from
+     */
     void readCorrectData(String correctFile){
       try{
         Scanner sc = new Scanner(new File(correctFile), "UTF-8");
@@ -333,6 +340,12 @@ public class CloudData {
       }
     }
 
+    /**
+     * Computes average run time by discarding first two samples and averaging last five samples for benchmarking purposes
+     *
+     * @param times Array of times to be averaged
+     * @return Float value representing average run time  
+     */
     public float findAvTime(float[] times)
     {
       float av = (times[2]+times[3]+times[4]+times[5]+times[6])/5;
@@ -340,6 +353,13 @@ public class CloudData {
     }
 
 
+
+
+    /**
+    * Performs benchmarking tests by varying data input size and sequential cutoff
+    *
+    * Generates results file containing benchmarking data
+    */
     public void benchMarking()
     {
       try{
@@ -354,6 +374,8 @@ public class CloudData {
         scalingFactor = ((float)d/datasize);
         System.out.println("Scaling factor = " + scalingFactor);
         printWriter.printf("Scaling factor = %f\n", scalingFactor);
+        System.out.println("Data size (no. of elements) = \n " + dim());
+        printWriter.printf("Data size (no. of elements) = \n", dim());
         float[] times = new float[7]; //run program 7 times but only average last 5
         Vector<Double> wind = new Vector();
         for (int i = 0; i < 7; i++)
@@ -420,7 +442,11 @@ public class CloudData {
   }
 
 
-
+  /**
+  * Verifies that output is correct by comparison with known output data
+  *
+  * @param wind Vector containing computed prevailing wind values to be verified
+  */
     public void checkOutput(Vector<Double> wind)
    	{
    		if (((wind.get(0)-checkWind.get(0) > EPSILON) | (wind.get(1)- checkWind.get(1) > EPSILON)))

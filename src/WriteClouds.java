@@ -80,8 +80,8 @@ public class WriteClouds extends RecursiveTask<Vector<Double>>  {
 		* Finds the cloud classification for the given gridpoint at the given time value
 		*
 		*@param time Integer value representing the time value at which to find the cloud classification
-		*@param i Integer value representing the x position of the gridpoint
-		*@param j Integer value representing the y position of the gridpoint
+		*@param x Integer value representing the x position of the gridpoint
+		*@param y Integer value representing the y position of the gridpoint
 		*@return Integer value representing the type of cloud likely to form. 0 = Cumulus, 1= Striated stratus 2 = Amorphous stratus.
 		*/
 		public int findCloud(int time, int x, int y)
