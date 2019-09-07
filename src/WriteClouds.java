@@ -1,38 +1,50 @@
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 import java.util.Vector;
 
 /**
- * Threaded class to write values representing cloud classification to a 3D array using parallelization
+ * Threaded class to write values representing cloud classification to a 3D array and sum a 3D array of (x, y) wind vectors using parallelization
  *
  *@author Samantha Ball
  *@version 1.0
  *@since 1
  */
-public class WriteClouds extends RecursiveAction { //change back to recusive task if necessary
+public class WriteClouds extends RecursiveTask<Vector<Double>>  {
 	  int lo; // arguments
 	  int hi;
 		int[][][] classification;
-		Vector<Float>[][][] advection;
-		float[][][] convection;
+		Vector<Double>[][][] advection;
+		double[][][] convection;
 		int dimx, dimy, dimt;
-	  static final int SEQUENTIAL_CUTOFF= 2000; //500 //3
+	  static int SEQUENTIAL_CUTOFF= 2500; //vary from 0-50000 //change back to final if necessary
+		double xsum = 0;
+		double ysum = 0;
+		int ans = 0; // result
+		static int numThreads = 0;
 
 
 		/**
     *Creates a new WriteClouds instance with the specified parameters
     *
 		*@param clas 3D array that classification values are written to
-    *@param advec 3D array of advection values used in cloud classification method
+    *@param advec 3D array of advection values to be added
 		*@param conv 3D array of convection values used in cloud classification method
-    *@param l Lower bound of elements to be classified
-    *@param h Upper bound of elements to be classified
+    *@param l Lower bound of elements to be added and classified
+    *@param h Upper bound of elements to be added and classified
     */
-	  public WriteClouds(int[][][] clas, Vector<Float>[][][] advec, float[][][] conv, int l, int h) {
+	  public WriteClouds(int[][][] clas, Vector<Double>[][][] advec, double[][][] conv, int l, int h) {
 	    lo=l; hi=h; classification = clas; advection = advec; convection = conv;
 			dimt = classification.length;
 			dimx = classification[0].length;
 			dimy = classification[0][0].length;
 	  }
+
+		public WriteClouds(int[][][] clas, Vector<Double>[][][] advec, double[][][] conv, int l, int h, int cutoff) {
+		 lo=l; hi=h; classification = clas; advection = advec; convection = conv;
+		 dimt = classification.length;
+		 dimx = classification[0].length;
+		 dimy = classification[0][0].length;
+		 SEQUENTIAL_CUTOFF = cutoff;
+	 }
 
 		/**
 	 * Converts linear position into 3D location in simulation grid
@@ -98,7 +110,7 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 				double magnitude = Math.sqrt((xav*xav)+(yav*yav));
 				//System.out.printf("Magnitude is %f\n", magnitude);
 				int cloudType = 0;
-				float uplift = convection[time][x][y]; //uplift value at the desired coordinate
+				double uplift = convection[time][x][y]; //uplift value at the desired coordinate
 
 				//assign to each air layer element an integer code (0, 1 or 2)
 				//indicates the type of cloud that is likely to form in that location
@@ -121,21 +133,29 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 
 
 		/**
-	  * Performs writing of classification data to the 3D array
+	  * Performs summing operation of (x,y) pairs and writing of classification data to the 3D array using parallelization
 	  *
 	  *<p>
-	  *Parallelization is achieved by creating new threads until the sequential cutoff is reached. The cloud classification values for each gridpoint are then found and written to the 3D array.
+	  *Parallelization is achieved by creating new threads until the sequential cutoff is reached. The x and y sums are then determined and returned as a 2D vector. The cloud classification values for each gridpoint are found and written to the 3D array.
 	  *</p>
+		*@return Vector object containing two float values representing the sum of the x values and the sum of the y values respectively
 		*/
-	  protected void compute(){// change back to protected integer if necessary
+	  protected Vector<Double> compute(){// change back to protected integer if necessary
 		  if((hi-lo) < SEQUENTIAL_CUTOFF) {
 				//each position represents a specific grid point
 				int[] gridPoint = new int[3];
+				//System.out.println("Seq cutoff reached");
 		    for(int i=lo; i < hi; i++)
 				{
 						locate(i, gridPoint);
 						classification[gridPoint[0]][gridPoint[1]][gridPoint[2]] = findCloud(gridPoint[0],gridPoint[1],gridPoint[2]);
+						xsum += advection[gridPoint[0]][gridPoint[1]][gridPoint[2]].get(0);
+					  ysum += advection[gridPoint[0]][gridPoint[1]][gridPoint[2]].get(1);
 				}
+				Vector<Double> sums = new Vector();
+			  sums.add(xsum);
+			  sums.add(ysum);
+			  return sums;
 		  }
 		  else {
 			  WriteClouds left = new WriteClouds(classification, advection, convection, lo,(hi+lo)/2);
@@ -143,9 +163,15 @@ public class WriteClouds extends RecursiveAction { //change back to recusive tas
 
 			  // order of next 4 lines
 			  // essential – why?
-			  left.fork();
-			  right.compute();
-			  left.join();
+				left.fork();
+				numThreads++;
+			  Vector<Double> rightAns = right.compute();
+				//System.out.println("Running in parallel");
+			  Vector<Double> leftAns = left.join();
+				Vector<Double> combined = new Vector();
+				combined.add(rightAns.get(0)+leftAns.get(0));
+				combined.add(rightAns.get(1)+leftAns.get(1));
+				return combined;
 		  }
 	 }
 
