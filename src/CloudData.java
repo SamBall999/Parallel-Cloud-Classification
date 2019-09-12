@@ -57,10 +57,6 @@ public class CloudData {
    *
    *@return Integer value representing the total number of elements in the timeline grids
    */
-   /*public int dim(){
-     //System.out.println("no elements" + (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy)));
-     return (scaledt)*(dimx)*(dimy);
-   }*/
   public int dim(){
     //return (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy));
     return (scaledt)*(dimx)*(dimy);
