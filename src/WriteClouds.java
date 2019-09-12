@@ -15,7 +15,7 @@ public class WriteClouds extends RecursiveTask<Vector<Double>>  {
 		Vector<Double>[][][] advection;
 		double[][][] convection;
 		int dimx, dimy, dimt;
-	  static int SEQUENTIAL_CUTOFF= 2500; //vary from 0-50000 //change back to final if necessary
+	  static int SEQUENTIAL_CUTOFF= 2500; //vary from 0-50000 //change back to final if necessary//2500
 		double xsum = 0;
 		double ysum = 0;
 		int ans = 0; // result

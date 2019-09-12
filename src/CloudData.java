@@ -1,4 +1,5 @@
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -32,15 +33,18 @@ public class CloudData {
   int [][][] checkClassification; // cloud type per grid point, evolving over time
   int dx, dy, dt; // data dimensions of correct output
   //flag to check output is correct
+  int scaledt = 0;
   boolean isCorrect = true;
   static double EPSILON = 0.000001;
   static int datasize = 512;
-  static float scalingFactor = 1;
+  static double scalingFactor = 1;
 
   //used to time sequential program - must test across a range of input sizes
   static long startTime = 0;
   static final ForkJoinPool fjPool = new ForkJoinPool();
 
+
+  //used for accurate timing for benchmarking
   private static void tick(){
     startTime = System.currentTimeMillis();
   }
@@ -53,9 +57,13 @@ public class CloudData {
    *
    *@return Integer value representing the total number of elements in the timeline grids
    */
+   /*public int dim(){
+     //System.out.println("no elements" + (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy)));
+     return (scaledt)*(dimx)*(dimy);
+   }*/
   public int dim(){
-    //System.out.println("no elements" + (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy)));
-    return (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy));
+    //return (int)Math.ceil((dimt*scalingFactor)*(dimx)*(dimy));
+    return (scaledt)*(dimx)*(dimy);
   }
 
   /**
@@ -79,6 +87,7 @@ public class CloudData {
 	void readData(String fileName){
 		try{
 			Scanner sc = new Scanner(new File(fileName), "UTF-8");
+      System.out.println("Loading Data");
 
 			// input grid dimensions and simulation duration in timesteps
 			dimt = sc.nextInt();
@@ -120,10 +129,10 @@ public class CloudData {
 		 try{
 			 FileWriter fileWriter = new FileWriter(fileName);
 			 PrintWriter printWriter = new PrintWriter(fileWriter);
-			 printWriter.printf("%d %d %d\n", dimt, dimx, dimy);
+			 printWriter.printf("%d %d %d\n", scaledt, dimx, dimy);
 			 printWriter.printf("%f %f\n", wind.get(0), wind.get(1));
 
-			 for(int t = 0; t < (dimt*scalingFactor); t++){
+			 for(int t = 0; t < (scaledt); t++){
 				 for(int x = 0; x < dimx; x++){
 					for(int y = 0; y < dimy; y++){
 						printWriter.printf("%d ", classification[t][x][y]);
@@ -153,7 +162,7 @@ public class CloudData {
   		double xsum = 0;
   		double ysum = 0;
   		int numPoints = 0;
-  		for(int t = 0; t < (dimt*scalingFactor); t++)
+  		for(int t = 0; t < (scaledt); t++)
   			for(int x = 0; x < dimx; x++)
   				for(int y = 0; y < dimy; y++){
   					//sum all x wind values
@@ -192,22 +201,14 @@ public class CloudData {
       }
       else
       {
-        sums = fjPool.invoke(new WriteClouds(classification, advection, convection, 0,dim(), cutoff));
+        sums = fjPool.invoke(new WriteClouds(classification, advection, convection, 0,dim(), cutoff)); //extra parameter for benchmarking
       }
-      /*else
-      {
-        sums = process(cutoff); //for benchmarking
-      }*/
       double xsum = sums.get(0);
       double ysum = sums.get(1);
-      //xsum = sum(advection);
-      //sum all y wind values
-      //ysum = sum(advection);
       //divide by number of entries/grid points
       int numPoints = dim();
       double xav = xsum/numPoints;
       double yav = ysum/numPoints;
-      //OR make vector inside summing function??
       //add values to wind vector
       wind.add(xav);
       wind.add(yav);
@@ -226,7 +227,7 @@ public class CloudData {
     public boolean checkBounds(int i, int j)
     {
       boolean inBounds = false;
-      if((i>=0)&&(i<dimx)&&(j>=0)&&(j<dimy))
+      if((i>=0)&&(i<dimx)&&(j>=0)&&(j<dimy)) //check if x and y co-ordinates are within the grid
       {
         inBounds = true;
       }
@@ -251,7 +252,7 @@ public class CloudData {
       //use indexes to sum correct blocks
       //check for boundaries
       boolean inBounds;
-      for(int i = x-1; i <= x+1; i++)
+      for(int i = x-1; i <= x+1; i++)  //-1 for 8 neighbours
         for(int j = y-1; j <= y+1; j++){
           inBounds = checkBounds(i, j);
           if(inBounds==true)
@@ -295,7 +296,7 @@ public class CloudData {
     */
     public void getClouds()
     {
-      for(int t = 0; t < (dimt*scalingFactor); t++)
+      for(int t = 0; t < (scaledt); t++)
         for(int x = 0; x < dimx; x++)
           for(int y = 0; y < dimy; y++){
           findCloud(t, x, y); // finds cloud type for this point and writes value to classification array
@@ -344,7 +345,7 @@ public class CloudData {
      * Computes average run time by discarding first two samples and averaging last five samples for benchmarking purposes
      *
      * @param times Array of times to be averaged
-     * @return Float value representing average run time  
+     * @return Float value representing average run time
      */
     public float findAvTime(float[] times)
     {
@@ -372,6 +373,7 @@ public class CloudData {
       for (int d = 32; d < 513; d*=2)
       {
         scalingFactor = ((float)d/datasize);
+        scaledt = (int)Math.ceil(dimt*scalingFactor);
         System.out.println("Scaling factor = " + scalingFactor);
         printWriter.printf("Scaling factor = %f\n", scalingFactor);
         System.out.println("Data size (no. of elements) = \n " + dim());
@@ -449,23 +451,26 @@ public class CloudData {
   */
     public void checkOutput(Vector<Double> wind)
    	{
-   		if (((wind.get(0)-checkWind.get(0) > EPSILON) | (wind.get(1)- checkWind.get(1) > EPSILON)))
+      if(scalingFactor==1)
+      {
+      if (((wind.get(0)-checkWind.get(0) > EPSILON) | (wind.get(1)- checkWind.get(1) > EPSILON)))
    		{
    					isCorrect = false;
    					System.out.println("Average wind does not match");
    		}
+    }
    		if ((dimt!=dt)|(dimy!=dy)|(dimx!=dx))
    		{
    			isCorrect = false;
    			System.out.println("Dimensions differ");
    		}
-   		for(int t = 0; t < (dt*scalingFactor); t++)
+   		for(int t = 0; t < (scaledt); t++)
    			for(int x = 0; x < (dx); x++)
    				for(int y = 0; y < (dy); y++)
    				{
    					if(classification[t][x][y]!= checkClassification[t][x][y])
    					{
-   						isCorrect = false;
+              isCorrect = false;
    						System.out.println("Classification is incorrect");
    					}
    				}
@@ -487,8 +492,10 @@ public class CloudData {
     public static void main(String[] args){
 
 	     CloudData cd = new CloudData();
+       cd.scalingFactor = 1; //set as 1 for standard operation
        cd.readData(args[0]); //read in data from input file
        cd.readCorrectData(args[2]); //read in correct output data to compare
+       cd.scaledt = (int)(Math.ceil(cd.dimt*cd.scalingFactor)); //set scaling factor to allow for different data sizes
 
        if(args.length == 4)
        {
@@ -501,18 +508,19 @@ public class CloudData {
        else
        {
 	        //standard config
-	         cd.scalingFactor = 1;
-           cd.tick();
-           Vector wind = cd.analyseData(0);
+	         System.out.println("Data size (no. of elements) = " + cd.dim());
+           cd.tick(); //start timing
+           Vector wind = cd.analyseData(0); //run parallel analysis
            float time = cd.tock();
-           System.out.println(time);
-           cd.tick();
-           wind = cd.findAverage();
+           System.out.println(time); //report parallel time
+           cd.checkOutput(wind); //check parallel output is correct
+           cd.tick(); //start timing
+           wind = cd.findAverage(); //run sequential analysis
            cd.getClouds();
            time = cd.tock();
-           System.out.println(time);
-           cd.checkOutput(wind);
-           cd.writeData(args[1], wind);
+           System.out.println(time); //report sequential time
+           cd.checkOutput(wind); //check sequential output is correct
+           cd.writeData(args[1], wind); //write output data to a file
          }
 
        }
