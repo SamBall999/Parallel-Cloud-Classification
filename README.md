@@ -6,11 +6,11 @@ This program classifies cloud type based on simulated weather data using the Jav
 ## Use
 
 If the program has not been compiled:
-- navigate to the root directory and use make to generate the necessary class files. 
+- Navigate to the root directory and use _make_ to generate the necessary class files. 
 
 From the root directory:
-- javadocs can be generated and removed using the make docs and make cleandocs commands respectively
-- class files can also be removed using make clean. 
+- Javadocs can be generated and removed using the _make docs_ and _make cleandocs_ commands respectively
+- Class files can also be removed using _make clean_. 
 
 Before running program:
 - The desired input data file and correct output file should be placed in the bin directory. 
