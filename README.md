@@ -27,4 +27,4 @@ In order to run the program in benchmarking mode, which tests both sequential an
        java CloudData [input data file] [output data file] [correct output data file] -t
        
 ## Analysis
-A full analysis of the parallel speed-up is included in the accompanying report. 
+A full analysis of the parallel speed-up is included in the accompanying [report](https://github.com/SamBall999/Parallel-Cloud-Classification/tree/master/Report). 
