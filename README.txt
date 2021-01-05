@@ -1,3 +1,10 @@
+# Parallel-Cloud-Classification
+
+This program classifies cloud type based on simulated weather data using the Java Fork/Join framework.
+
+
+## Use
+
 If the program has not been compiled:
 - navigate to the root directory and use make to generate the necessary class files. 
 
@@ -18,3 +25,6 @@ In order to run the program with the basic functionality, the following command 
 In order to run the program in benchmarking mode, which tests both sequential and parallel, as well as varying the data size and sequential cut-off parameters, the command is adjusted by adding the -t flag:
 
        java CloudData [input data file] [output data file] [correct output data file] -t
+       
+## Analysis
+A full analysis of the parallel speed-up is included in the accompanying report. 
